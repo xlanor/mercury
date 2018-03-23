@@ -1,4 +1,8 @@
+
 var lazOps = require('./LazOps.js');
+var jsonxml = require('jsontoxml');
+
+
 
 // returns a promise.
 function getOrders(country,access_key,app_key,secret_key,api_parameters){
@@ -29,7 +33,6 @@ function getOrders(country,access_key,app_key,secret_key,api_parameters){
 		throw(error);
 	});
 }
-
 // A Function to check for valid country and return the appropirate gateway
 function checkCountry(country,access_key){
 	switch(country)
@@ -44,7 +47,6 @@ function checkCountry(country,access_key){
 				break;
 	}
 }
-
 /*
 A recursive function.  
 */
@@ -91,7 +93,6 @@ function getAllOrders(country,access_key,app_key,secret_key,api_parameters,array
 		throw(error);
 	});
 }
-
 // we modify the lazada response to add the order code into this
 
 function getOrderItems(country,app_key,secret_key,access_code,api_parameters){
@@ -127,7 +128,6 @@ function getOrderItems(country,app_key,secret_key,access_code,api_parameters){
 		throw(error);
 	});
 }
-
 function validateSeller(app_key,secret_key,access_code){
 	/*
 	For validation it appears a different api is used.
@@ -148,7 +148,6 @@ function validateSeller(app_key,secret_key,access_code){
 		throw(error);
 	});
 }
-
 function handleChainedPromise(array_of_promises,order_array){
 	// we accept order-array so that we can resolve it and then chain it further down.
 	return Promise.all(array_of_promises).then((success)=>{
@@ -174,3 +173,130 @@ function mergeOrderList(combined_list){
 	}
 	return combined_list;
 }
+function getXMLChildren(jsonObject){
+	console.log("CALLED");
+	console.log(jsonObject);
+	sku_object = new Object();
+	sku_object.name = 'Sku';
+	sku_object.children = [];
+	sku_object.children.push({'name':"SellerSku",'text': jsonObject.SellerSku});
+	if("Quantity" in jsonObject){
+		sku_object.children.push({'name':"Quantity",'text': jsonObject.Quantity});
+	}
+	if("Price" in jsonObject){
+		sku_object.children.push({'name':"Price",'text': jsonObject.Price});
+	}
+	if("SalePrice" in jsonObject){
+		sku_object.children.push({'name':"SalePrice",'text': jsonObject.SalePrice});
+	}
+	if("SaleStartDate" in jsonObject){
+		sku_object.children.push({'name':"SaleStartDate",'text': jsonObject.SaleStartDate});
+	}
+	if("SaleEndDate" in jsonObject){
+		sku_object.children.push({'name':"SaleEndDate",'text': jsonObject.SaleEndDate});
+	}
+	return sku_object
+}
+
+function convertJsonToXml(array_of_json_object){
+	if (array_of_json_object.length == 0){
+		throw ("Array of Json cannot be empty");
+	}
+	for(var i=0; i < array_of_json_object.length; i++){
+		if(!("SellerSku" in array_of_json_object[i])){
+			throw("Missing Seller Sku for an item!");
+		}
+	}
+	/*
+	Use this call to update the price and quantity of one or more existing products. 
+	The maximum number of products that can be updated is 50, but 20 is recommended.
+	*/
+	
+	var array_of_xml = [];
+	var number_of_requests = (array_of_json_object.length / 20 > 0)?Math.ceil(array_of_json_object.length/20):1;
+	console.log("NO REQ: "+number_of_requests);
+	var offset = 0;
+	var limit = (array_of_json_object.length > 20)?20:array_of_json_object.length;
+	for (var i=0; i < number_of_requests; i++){
+		var construct_sku_object = [];
+		for (var j = offset; j < limit; j++){
+			var sku_object = getXMLChildren(array_of_json_object[j]);
+			construct_sku_object.push(sku_object);
+		}
+		/*Constructs an xml of 20 SKU*/
+		var xml = jsonxml(
+			{
+				Request:[
+						{
+							name:'Product',children:
+							{'Skus':construct_sku_object}
+						}
+					]
+			},{
+				xmlHeader:true
+				
+			}
+		);
+		array_of_xml.push(xml);
+		offset += 20;
+		limit += 20;
+	}
+	console.log(array_of_xml);
+	return array_of_xml;
+
+	
+	
+}
+
+function executePriceRequest(country,access_key,app_key,secret_key,xmlObj){
+	return new Promise((resolve,reject)=>{
+		if (![country,access_key,app_key,secret_key,xmlObj].every(Boolean)) {
+		     reject("No parameter can be empty");
+		}
+		const country_check = checkCountry(country,access_key);
+		if("gateway" in country_check){
+			resolve(country_check);
+		}else{
+			reject(country_check);
+		}
+
+	}).then((success_arr)=>{
+		var client = new lazOps.LazopClient(success_arr['gateway'],app_key, secret_key);
+		var requestClient = new lazOps.LazopRequest("/product/price_quantity/update");
+        requestClient.addApiParam('payload',xmlObj);
+		return client.execute(requestClient,access_key);
+
+	}).then((success)=>{
+		success = JSON.parse(success);
+		return(success);
+	}).catch((error)=>{
+		throw(error);
+	});
+}
+
+function updatePriceQuantity(country,access_key,app_key,secret_key,array_of_json_object){
+	var array_of_xml =  convertJsonToXml(array_of_json_object); 
+	var promise_arr = [];
+	for (var i=0; i < array_of_xml.length; i++){
+		promise_arr.push(executePriceRequest(
+				country,access_key,app_key,secret_key,array_of_xml[i]
+			));
+	}
+	return Promise.all(promise_arr).then((success)=>{
+		return success;
+	}).catch((error)=>{
+		throw(error);
+	})
+	
+}
+module.exports ={
+	validateSeller,
+	mergeOrderList,
+	handleChainedPromise,
+	validateSeller,
+	getOrderItems,
+	getOrders,
+	updatePriceQuantity
+
+}
+
