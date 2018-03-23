@@ -5,32 +5,56 @@ Still a WIP
 
 # API Calls
 
-## /auth/token/create, 'GET'
+## .validateSeller, calls /auth/token/create, 'GET'
 ```javascript
-// Note that currently to auth you need to use auth.lazada.com or api.lazada.com, whereas for
-// normal get orders and stuff you need to use country specific gateways.
-var client = new lazOps.LazopClient('http://api.lazada.com/rest','appkey','secretkey');
-var requestClient2 = new lazOps.LazopRequest('/auth/token/create','GET');
-requestClient2.addApiParam('code','authcode');
-client.execute(requestClient2).then((success)=>{
-  console.log(success);
+validateSeller(appkey,secretkey,access_code).then((success)=>{
+	console.log("SUCCESS!");
+	console.log(success);
 }).catch((error)=>{
-  console.log(error);
+	console.log("ERROR CAUGHT");
+	console.log(error);
 });
 ```
-## /auth/token/create, 'POST'
+
+## .getOrderItems, calls /order/items/get, 'GET'
 ```javascript
-// Note that currently to auth you need to use auth.lazada.com or api.lazada.com, whereas for
-// normal get orders and stuff you need to use country specific gateways.
-var client = new lazOps.LazopClient('http://api.lazada.com/rest','appkey','secretkey');
-var requestClient = new lazOps.LazopRequest('/auth/token/create');
-requestClient.addApiParam('code','authcode');
-client.execute(requestClient).then((success)=>{
-  console.log(success);
+getOrderItems(country,app_key,secret_key,access_key,param).then((success)=>{
+	console.log((success));
 }).catch((error)=>{
-  console.log(error);
-});
+	console.log(error);
 ```
+
+## .getOrders, calls /orders/get, 'GET'
+```javascript
+// first, define the params and populate w/ whatever you want.
+var params = new Object();
+param['created_after'] = '2018-03-22T12:27:44+08:00';
+param['status'] = 'pending';
+param['offset'] = 0; 
+param['limit'] = 100;
+
+getOrders(country,access_key,app_key,secret_key,params).then((success)=>{
+	console.log((success));
+}).catch((error)=>{
+	console.log(error);
+```
+
+## Some Custom API Calls.
+## .getAllOrders, a recursive function for .getOrders, 'GET'
+```javascript
+// first, define the params and populate w/ whatever you want.
+var params = new Object();
+param['created_after'] = '2018-03-22T12:27:44+08:00';
+param['status'] = 'pending';
+param['offset'] = 0; // the offset for this function will be incremeneted for each recursion loop until count reaches 0
+param['limit'] = 100;
+
+getAllOrders(country,access_key,app_key,secret_key,params,[]).then((success)=>{
+	console.log((success));
+}).catch((error)=>{
+	console.log(error);
+```
+
 
 # Some Samples
 
