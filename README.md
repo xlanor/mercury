@@ -38,7 +38,20 @@ getOrders(country,access_key,app_key,secret_key,params).then((success)=>{
 }).catch((error)=>{
 	console.log(error);
 ```
-
+## .updatePriceQuantity, calls /product/price_quantity/update, 'POST
+```javascript
+	var array_of_json_object =[Object({
+			SellerSku:"7YOONA95",
+			// price must be a float.
+			Quantity:"89999999",
+			Price:"100000000"
+		})];
+	methods.updatePriceQuantity(country,access_key,app_key,secret_key,array_of_json_object).then((success)=>{
+		console.log(success);
+	}).catch((error)=>{
+		console.log(error);
+	});
+```
 ## Some Custom API Calls.
 ## .getAllOrders, a recursive function for .getOrders, 'GET'
 ```javascript
