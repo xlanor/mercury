@@ -1,7 +1,11 @@
 # mercury
 A NodeJS wrapper for the open lazada API.
 
-Still a WIP
+Still a WIP.
+Not all endpoints will be covered. Please feel free to contribute
+
+# License
+AGPL v3.
 
 # API Calls
 
