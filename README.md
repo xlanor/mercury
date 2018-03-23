@@ -24,7 +24,7 @@ client.execute(requestClient2).then((success)=>{
 // normal get orders and stuff you need to use country specific gateways.
 var client = new lazOps.LazopClient('http://api.lazada.com/rest','appkey','secretkey');
 var requestClient = new lazOps.LazopRequest('/auth/token/create');
-requestClient.addApiParam('code','0_oLHzZ5QHgcpXb3JNg8c9d3Wd103');
+requestClient.addApiParam('code','authcode');
 client.execute(requestClient).then((success)=>{
   console.log(success);
 }).catch((error)=>{
