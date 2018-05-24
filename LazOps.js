@@ -1,6 +1,29 @@
 /*
+Mercury
+Copyright (C) 2018 @ Jing Kai 
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 Author: Jing Kai
-An implementation of the lazada API, written in NodeJS
+
+Last updated: 24-05-2018
+
+Current Version: 0.0.2
+
+File Name: LazOps.js
+
+File Description: An implementation of the lazada SDK, written in NodeJS
 
 This implementation has little to no validation.
 It makes the fatal assumption that... the user is smart.
@@ -9,8 +32,6 @@ addFile not tested as we dont have any testing account to test.
 How to get the stream - for file uploading.
 const fs = require('fs');
 var contents = fs.readFileSync('inject.txt').toString();
-
-Last updated: 21-03-2018
 
 */
 
@@ -21,7 +42,7 @@ const FormData = require('form-data');
 // for debugging purposes
 const util = require('util');
 var globalLog = require('global-request-logger');
-globalLog.initialize();
+//globalLog.initialize();
 
 
 
@@ -81,7 +102,7 @@ class LazopClient {
         if (null != accessToken) {
             sysParams["access_token"] = accessToken;
         }
-
+        
         var api_params = lazReqObj.udfParams;
         var requestUrl = this.gatewayUrl;
 
@@ -94,7 +115,7 @@ class LazopClient {
         requestUrl += lazReqObj.apiName;
         requestUrl += "?";
         sysParams["sign"] = this.generateSign(lazReqObj.apiName, this.mergeObjects(api_params, sysParams));
-        var keys = Object.keys(sysParams);
+        const keys = Object.keys(sysParams);
         Object.keys(sysParams).forEach(function(key) {
             requestUrl += key;
             requestUrl += "=";
@@ -114,14 +135,14 @@ class LazopClient {
          */
         generateSign(apiName, params) {
             var sorted = this.kSort(params);
-            var signed_string = this.generateString(apiName, sorted);
+            const signed_string = this.generateString(apiName, sorted);
             var hash = this.generateHash(this.secretkey, signed_string);
             hash = hash.toUpperCase();
             return hash;
         }
         // a node JS function to replicate ksort in php array - sort the keys in ascending order.
         kSort(obj) {
-            var keys = Object.keys(obj).sort(),
+            const keys = Object.keys(obj).sort(),
                 sortedObj = {};
 
             for (var i in keys) {
@@ -134,7 +155,7 @@ class LazopClient {
             var string_to_be_signed = '';
             // construct the string to be hashed
             string_to_be_signed += apiName;
-            var keys = Object.keys(paramsObj);
+            const keys = Object.keys(paramsObj);
             Object.keys(paramsObj).forEach(function(key) {
                 string_to_be_signed += String(key);
                 string_to_be_signed += String(paramsObj[key]);
@@ -221,18 +242,19 @@ class LazopClient {
 
         }
         generate_get_req(url, apiFields = null, headerFields = null){
-        	var api_obj_keys = Object.keys(apiFields);
+        	const api_obj_keys = Object.keys(apiFields);
         	for(var i=0; i < api_obj_keys.length; i++){
         		url += '&';
         		url += api_obj_keys[i];
         		url += '=';
         		url += encodeURIComponent(apiFields[api_obj_keys[i]]);
         	}
+        	console.log(apiFields);
             var options = new Object();
             options['url'] = url;
         	if (null != headerFields) {
                 options['headers'] = {};
-                var keys = Object.keys(headerFields);
+                const keys = Object.keys(headerFields);
 
                 for (var i = 0; i < keys.length; i++) {
 	                options['headers'][keys[i]] = headerFields[keys[i]];
@@ -262,33 +284,3 @@ module.exports = {
   LazopRequest : LazopRequest,
   LazopClient : LazopClient
 }
-/*
-Debugging and tests
-Only tested with /auth/token/create
-globalLog.on('success', function(request, response) {
-  console.log('SUCCESS');
-  console.log('Request', request);
-  console.log('Response', response);
-});
-
-
-var client = new LazopClient('http://api.lazada.com/rest','<appid>','<secretkey>');
-
-Test Post request
-var requestClient = new LazopRequest('/auth/token/create');
-requestClient.addApiParam('code','<callbackauthtoken>');
-client.execute(requestClient).then((success)=>{
-	console.log(success);
-}).catch((error)=>{
-	console.log(error);
-})
-
-// Test Get request
-var requestClient2 = new LazopRequest('/auth/token/create','GET');
-requestClient2.addApiParam('code','<callbackauthtoken>');
-client.execute(requestClient2).then((success)=>{
-	console.log(success);
-}).catch((error)=>{
-	console.log(error);
-})
-*/
