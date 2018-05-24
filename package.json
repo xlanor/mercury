@@ -1,6 +1,6 @@
 {
   "name": "@xlanor/mercury",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "A wrapper for the open lazada API",
   "main": "methods.js",
   "scripts": {
@@ -15,6 +15,12 @@
     "api",
     "open"
   ],
+  "dependencies": {
+    "global-request-logger": "^0.1.1",
+    "jsontoxml": "^1.0.0",
+    "request": "^2.85.0",
+    "form-data": "^2.3.2"
+  },
   "author": "Jing Kai Tan <contact@jingk.ai>",
   "license": "AGPL-3.0",
   "bugs": {
