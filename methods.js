@@ -1,3 +1,31 @@
+/*
+Mercury
+Copyright (C) 2018 @ Jing Kai 
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+Author: Jing Kai
+
+Last updated: 24-05-2018
+
+Current Version: 0.0.2
+
+File Name: methods.js
+
+File Description: Wrapper methods to access the open lazada API using the translated lazOps SDK.
+
+*/
 
 var lazOps = require('./LazOps.js');
 var jsonxml = require('jsontoxml');
@@ -37,6 +65,8 @@ function getOrders(country,access_key,app_key,secret_key,api_parameters){
 function checkCountry(country,access_key){
 	switch(country)
 	{
+		// you can add in more countries here, for my production app 
+		// I'm only concerned with sg and my stores so I wrote it this way
 		case "sg":
 				return({"gateway":"https://api.lazada.sg/rest","accesskey":access_key})
 				break;
@@ -95,7 +125,7 @@ function getAllOrders(country,access_key,app_key,secret_key,api_parameters,array
 }
 // we modify the lazada response to add the order code into this
 
-function getOrderItems(country,app_key,secret_key,access_code,api_parameters){
+function getOrderItems(country,app_key,secret_key,access_key,api_parameters){
 	return new Promise((resolve,reject)=>{
 		if (![country,access_key,app_key,secret_key,api_parameters].every(Boolean)) {
 		     reject("No parameter can be empty");
@@ -122,7 +152,6 @@ function getOrderItems(country,app_key,secret_key,access_code,api_parameters){
 		var order_id = api_parameters['order_id'];
 		var returnObject = new Object();
 		returnObject[order_id] = success.data;
-		console.log(returnObject[order_id]);
 		return(returnObject);
 	}).catch((error)=>{
 		throw(error);
@@ -174,14 +203,18 @@ function mergeOrderList(combined_list){
 	return combined_list;
 }
 function getXMLChildren(jsonObject){
-	console.log("CALLED");
-	console.log(jsonObject);
+
 	sku_object = new Object();
 	sku_object.name = 'Sku';
 	sku_object.children = [];
 	sku_object.children.push({'name':"SellerSku",'text': jsonObject.SellerSku});
 	if("Quantity" in jsonObject){
-		sku_object.children.push({'name':"Quantity",'text': jsonObject.Quantity});
+		if(jsonObject["Quantity"] > 0){
+			sku_object.children.push({'name':"Quantity",'text': jsonObject.Quantity});
+		}else{
+			// if below 0, force 0 quantity.
+			sku_object.children.push({'name':"Quantity",'text': 0});
+		}
 	}
 	if("Price" in jsonObject){
 		sku_object.children.push({'name':"Price",'text': jsonObject.Price});
@@ -217,9 +250,11 @@ function convertJsonToXml(array_of_json_object){
 	console.log("NO REQ: "+number_of_requests);
 	var offset = 0;
 	var limit = (array_of_json_object.length > 20)?20:array_of_json_object.length;
+	
 	for (var i=0; i < number_of_requests; i++){
 		var construct_sku_object = [];
 		for (var j = offset; j < limit; j++){
+
 			var sku_object = getXMLChildren(array_of_json_object[j]);
 			construct_sku_object.push(sku_object);
 		}
@@ -234,14 +269,13 @@ function convertJsonToXml(array_of_json_object){
 					]
 			},{
 				xmlHeader:true
-				
 			}
 		);
 		array_of_xml.push(xml);
 		offset += 20;
 		limit += 20;
+		limit = (limit >= array_of_json_object.length)?(array_of_json_object.length - 1): limit;
 	}
-	console.log(array_of_xml);
 	return array_of_xml;
 
 	
@@ -275,15 +309,23 @@ function executePriceRequest(country,access_key,app_key,secret_key,xmlObj){
 }
 
 function updatePriceQuantity(country,access_key,app_key,secret_key,array_of_json_object){
+	var return_array = [];
 	var array_of_xml =  convertJsonToXml(array_of_json_object); 
 	var promise_arr = [];
+	console.log(array_of_xml);
 	for (var i=0; i < array_of_xml.length; i++){
 		promise_arr.push(executePriceRequest(
 				country,access_key,app_key,secret_key,array_of_xml[i]
 			));
 	}
 	return Promise.all(promise_arr).then((success)=>{
-		return success;
+		for (var i=0; i < success.length; i++){
+		
+				return_array.push(success[i]); // need to see the returned data.
+			
+		}
+		return return_array;
+		
 	}).catch((error)=>{
 		throw(error);
 	})
@@ -296,7 +338,8 @@ module.exports ={
 	validateSeller,
 	getOrderItems,
 	getOrders,
-	updatePriceQuantity
+	updatePriceQuantity,
+	getAllOrders
 
 }
 

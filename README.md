@@ -7,6 +7,20 @@ Not all endpoints will be covered. Please feel free to contribute
 # License
 AGPL v3.
 
+I've been seeing a few clones of this repo, I suspect it's from ecommerce companies integrating with the new lazada API before the hard deadline of 31st May (Because it's such a good idea to give a 2 months deadline and spend 1 month of that time waiting for paperwork and approval.), so I want to make this explictly clear.
+
+This software is licensed under the GNU Affero General Public License v3.
+
+Please read the licensing file for terms and conditions, but for a tl;dr,
+
+If you use the software as is in your application, no problem.
+
+If you make ANY changes to it, you MUST make avaliable the source code of the MODIFIED version of this project.
+
+It'd be nice if you can submit it as a PR so that we can all benefit together.
+
+I wrote this SDK adaptation and the subsequent wrappers around the various API Calls without even knowing nodeJS, relying entirely on my knowledge of front-end jquery and basic JS, so this might not be the most optimal way to do it, and I'd really appreciate experienced nodeJS developers who can steer this on the right track, since lazada doesn't seem to have released a node SDK.
+
 # API Calls
 
 ## .validateSeller, calls /auth/token/create, 'GET'
