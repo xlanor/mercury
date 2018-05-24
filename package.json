@@ -1,0 +1,24 @@
+{
+  "name": "@xlanor/mercury",
+  "version": "0.1.1",
+  "description": "A wrapper for the open lazada API",
+  "main": "methods.js",
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xlanor/mercury.git"
+  },
+  "keywords": [
+    "lazada",
+    "api",
+    "open"
+  ],
+  "author": "Jing Kai Tan <contact@jingk.ai>",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/xlanor/mercury/issues"
+  },
+  "homepage": "https://github.com/xlanor/mercury#readme"
+}
